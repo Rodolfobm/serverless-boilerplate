@@ -1,0 +1,19 @@
+Resources:
+  ApiGatewayAuthorizer:
+    DependsOn:
+      - SharedApiGateway
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      Name: Cognito-Authorizer-${opt:stage, 'server'}
+      IdentitySource: method.request.header.Authorization
+      RestApiId:
+        Ref: SharedApiGateway
+      Type: COGNITO_USER_POOLS
+      ProviderARNs:
+        - Fn::GetAtt: ['CognitoUserPool', Arn]
+Outputs:
+  ApiGatewayAuthorizer:
+    Value:
+      Ref: ApiGatewayAuthorizer
+    Export:
+      Name: cognito-authorizer-${opt:stage, 'server'}

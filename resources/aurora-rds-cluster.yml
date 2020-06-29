@@ -1,0 +1,23 @@
+Resources:
+  DashboardAuroraDatabaseCluster:
+    DependsOn: SecurityGroup
+    Type: 'AWS::RDS::DBCluster'
+    Properties:
+      DBClusterIdentifier: dashboard-liquidacao-cluster-${self:provider.stage}
+      DatabaseName: ddl_database_${self:provider.stage}
+      DBClusterParameterGroupName: default.aurora-postgresql10
+      Engine: aurora-postgresql
+      EngineVersion: 10.7
+      EngineMode: provisioned
+      MasterUsername: ${file(./env/env.${self:provider.stage}.json):DATABASE_USERNAME}
+      MasterUserPassword: ${file(./env/env.${self:provider.stage}.json):DATABASE_PASSWORD}
+      Port: 5432
+      PreferredBackupWindow: 01:00-02:00
+      PreferredMaintenanceWindow: mon:03:00-mon:04:00
+      VpcSecurityGroupIds:
+        - "Fn::GetAtt": SecurityGroup.GroupId
+      DBSubnetGroupName:
+        Ref: DdlRdsSubnetGroup
+      Tags:
+        - Key: Name
+          Value: ddl-Db-Cluster-${self:provider.stage}

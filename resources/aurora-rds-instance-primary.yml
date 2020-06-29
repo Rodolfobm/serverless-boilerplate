@@ -1,0 +1,28 @@
+Resources:
+  DashboardAuroraDatabasePrimary:
+    DependsOn: DashboardAuroraDatabaseCluster
+    Type: 'AWS::RDS::DBInstance'
+    Properties:
+      DBClusterIdentifier:
+        Ref: DashboardAuroraDatabaseCluster
+      DBInstanceIdentifier: dashboard-liquidacao-primary-${self:provider.stage}
+      DBInstanceClass: db.t3.medium
+      Engine: aurora-postgresql
+      EngineVersion: 10.7
+      PubliclyAccessible: true
+      DBSubnetGroupName:
+        Ref: DdlRdsSubnetGroup
+      Tags:
+        - Key: Name
+          Value: ddl-Db-${self:provider.stage}
+Outputs:
+  DdlAuroraRdsEndpoint:
+    Value:
+      "Fn::GetAtt": [ DashboardAuroraDatabasePrimary, Endpoint.Address ]
+    Export:
+      Name: ddl-rds-endpoint-${self:provider.stage}
+  DdlAuroraRdsPort:
+    Value:
+      "Fn::GetAtt": [ DashboardAuroraDatabasePrimary, Endpoint.Port ]
+    Export:
+      Name: ddl-rds-port-${self:provider.stage}

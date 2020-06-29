@@ -1,0 +1,104 @@
+service:
+  name: service-name-test
+
+# Add the serverless-webpack plugin
+plugins:
+  - serverless-deployment-bucket
+  - serverless-webpack
+  - serverless-export-env
+  - serverless-offline
+
+package:
+  exclude:
+    - test/**
+    - test.*
+    - .env
+    - .git/**
+    - .gitignore
+    - .DS_Store
+    - npm-debug.log
+    - .serverless/**
+    - .serverless_plugins/**
+
+# Define custom variables here
+custom:
+  webpack:
+    keepOutputDirectory: true
+    webpackConfig: ../../../../webpack.config.js
+    includeModules:
+      packagePath: ../../../../package.json
+  webpackIncludeModules:
+    forceInclude:
+      - reflect-metadata
+  # APi Gateway URL
+  apiGwUrl:
+    Fn::Join:
+      - ''
+      - - https://
+        - "Fn::ImportValue": apigateway-id-${self:provider.stage}
+        - .execute-api.
+        - ${self:provider.region}
+        - .amazonaws.com/
+        - ${self:provider.region}
+  # Aurora RDS info.
+  databaseName:
+    Fn::Join:
+      - ''
+      - - ${file(../../../../env/env.${self:provider.stage}.json):DATABASE_NAME}
+        - _
+        - ${self:provider.stage}
+  rdsEndpoint:
+    "Fn::ImportValue": rds-endpoint-${opt:stage, 'dev'}
+  rdsPort:
+    "Fn::ImportValue": rds-port-${opt:stage, 'dev'}
+  ApiGatewayAuthorizer:
+    "Fn::ImportValue": cognito-authorizer-${opt:stage, 'server'}
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+  profile: default
+  memorySize: 512
+  timeout: 3
+  logRetentionInDays: 7
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action: '*'
+      Resource: '*'
+  apiGateway:
+    restApiId:
+      "Fn::ImportValue": apigateway-id-${self:provider.stage}
+    restApiRootResourceId:
+      "Fn::ImportValue": apigateway-rootid-${self:provider.stage}
+  deploymentBucket:
+    name: ${self:service.name}-deployment-bucket-${self:provider.stage}
+    serverSideEncryption: AES256
+  endpointType: regional
+  # Inject proccess.env variables here
+  environment:
+    # End of Env attributtes helper
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+    URL: ${self:custom.apiGwUrl}
+    DATABASE_TYPE: ${file(../../../../env/env.${self:provider.stage}.json):DATABASE_TYPE}
+    DATABASE_HOST: ${self:custom.rdsEndpoint}
+    DATABASE_PORT: ${self:custom.rdsPort}
+    DATABASE_NAME: ${self:custom.databaseName}
+    DATABASE_USERNAME: ${file(../../../../env/env.${self:provider.stage}.json):DATABASE_USERNAME}
+    DATABASE_PASSWORD: ${file(../../../../env/env.${self:provider.stage}.json):DATABASE_PASSWORD}
+    DATABASE_SYNCHRONIZE: ${file(../../../../env/env.${self:provider.stage}.json):DATABASE_SYNCHRONIZE}
+    DATABASE_LOGGING: ${file(../../../../env/env.${self:provider.stage}.json):DATABASE_LOGGING}
+
+functions:
+  insertUser:
+    handler: ./TestHandler.handler
+    events:
+      - http:
+          method: get
+          path: test
+          cors: true
+          # authorizer:
+          #   type: COGNITO_USER_POOLS
+          #   authorizerId: ${self:custom.apiGwAuthorizer}

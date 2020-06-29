@@ -1,0 +1,46 @@
+Resources:
+  CognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    UpdateReplacePolicy: Retain
+    Properties:
+      UserPoolName: cognito_user_pool_${opt:stage, 'server'}
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+        UnusedAccountValidityDays: 30
+        InviteMessageTemplate:
+          EmailSubject: 'Your temporary password' 
+          EmailMessage: 'Username: {username} Password: {####}'
+      Schema:
+        - Name: name
+          AttributeDataType: String
+          Mutable: True
+          Required: True
+        - Name: email
+          AttributeDataType: String
+          Mutable: True
+          Required: True
+        - Name: lastName
+          AttributeDataType: String
+          Mutable: True
+          Required: False
+
+  CognitoUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: cognito_user_pool_client_${opt:stage, 'server'}
+      UserPoolId:
+        Ref: CognitoUserPool
+      ExplicitAuthFlows:
+        - USER_PASSWORD_AUTH
+      GenerateSecret: false
+
+Outputs:
+  UserPoolId:
+    Value:
+      Ref: CognitoUserPool
+    Export:
+      Name: cognitoUserPool-${opt:stage, 'server'}

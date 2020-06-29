@@ -1,0 +1,58 @@
+{
+  "name": "serverless-project",
+  "version": "0.0.0",
+  "description": "Serverless webpack example using Typescript",
+  "scripts": {
+    "test": "nps test",
+    "sync": "nps db.sync",
+    "orm-config": "nps db.config",
+    "migration-create": "nps db.config && ts-node ./node_modules/typeorm/cli.js migration:create -d src/core/database/migrations",
+    "migrate_stage_test": "nps db.migrate_stage_test.run",
+    "revert": "nps db.migrate.revert",
+    "setup": "nps db.setup"
+  },
+  "dependencies": {
+    "@types/supertest": "^2.0.8",
+    "aws-sdk": "^2.546.0",
+    "npm-which": "^3.0.1",
+    "pg": "^7.12.1",
+    "reflect-metadata": "^0.1.13",
+    "serverless": "^1.54.0",
+    "serverless-deployment-bucket": "^1.1.0",
+    "source-map-support": "^0.5.10",
+    "typeorm": "^0.2.19"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.17",
+    "@types/jest": "^24.0.19",
+    "@types/node": "^10.12.18",
+    "jest": "^24.9.0",
+    "kill-port": "^1.6.0",
+    "nps": "^5.9.8",
+    "nps-utils": "^1.7.0",
+    "serverless-export-env": "github:Rodolfobm/serverless-export-env",
+    "serverless-offline": "^5.12.0",
+    "serverless-webpack": "^5.2.0",
+    "supertest": "^4.0.2",
+    "ts-jest": "^24.1.0",
+    "ts-loader": "^5.3.3",
+    "typescript": "^3.2.4",
+    "webpack": "^4.41.1"
+  },
+  "jest": {
+    "verbose": true,
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "json"
+    ],
+    "testEnvironment": "node"
+  },
+  "author": "The serverless webpack authors (https://github.com/elastic-coders/serverless-webpack)",
+  "license": "MIT"
+}

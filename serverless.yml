@@ -1,0 +1,120 @@
+service:
+  name: service-name
+# app and org for use with dashboard.serverless.com
+# app: {{YOUR APP}}
+# Add aws' resources from different files here
+resources:
+    #
+    # Default APIGateway
+    # We explicitly declare an API Gateway so we can use it with all different services accross the project
+    # There's also a Cognito declared (commented) that can be used and a cognito authorizer for ApiGw
+    # and code at functions to declare the authorizer for that function
+    #
+  # - ${file(resources/cognito-user-pool.yml)}
+  # - ${file(resources/cognito-identity-pool.yml)}
+  - ${file(resources/api-gateway.yml)}
+  # - ${file(resources/api-gateway-response.yml)}
+  - ${file(resources/cognito-authorizer.yml)}
+  - ${file(resources/network.yml)}
+  - ${file(resources/aurora-rds-cluster.yml)}
+  - ${file(resources/aurora-rds-instance-primary.yml)}
+
+# Add the serverless-webpack plugin
+plugins:
+  - serverless-webpack
+  - serverless-deployment-bucket
+  - serverless-export-env
+  - serverless-offline
+
+package:
+  exclude:
+    - test/**
+    - test.*
+    - .env
+    - .git/**
+    - .gitignore
+    - .DS_Store
+    - npm-debug.log
+    - .serverless/**
+    - .serverless_plugins/**
+
+# Define custom variables here
+custom:
+  webpackIncludeModules:
+    forceInclude:
+      - reflect-metadata
+  # APi Gateway URL
+  apiGwUrl:
+    Fn::Join:
+      - ''
+      - - https://
+        - Ref: SharedApiGateway
+        - .execute-api.
+        - ${self:provider.region}
+        - .amazonaws.com/
+        - ${self:provider.region}
+  # Aurora RDS info.
+  databaseName:
+    Fn::Join:
+      - ''
+      - - ${file(./env/env.${self:provider.stage}.json):DATABASE_NAME}
+        - _
+        - ${self:provider.stage}
+  rdsEndpoint:
+    "Fn::GetAtt": ['DashboardAuroraDatabasePrimary', 'Endpoint.Address']
+  rdsPort:
+    "Fn::GetAtt": ['DashboardAuroraDatabasePrimary', 'Endpoint.Port']
+  apiGwAuthorizer:
+    Ref: ApiGatewayAuthorizer
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+  profile: default
+  memorySize: 512
+  timeout: 3
+  logRetentionInDays: 7
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action: '*'
+      Resource: '*'
+  apiGateway:
+    restApiId:
+      Ref: SharedApiGateway
+    restApiRootResourceId:
+      Fn::GetAtt: [ SharedApiGateway, RootResourceId ]
+  deploymentBucket:
+    name: ${self:service.name}-deployment-bucket-${self:provider.stage}
+    serverSideEncryption: AES256
+  endpointType: regional
+  # Inject proccess.env variables here
+  environment:
+    # Env. Attributes to help exporting to .env file
+    DashboardAuroraDatabasePrimary_Endpoint_Address: rds-endpoint-${self:provider.stage}
+    DashboardAuroraDatabasePrimary_Endpoint_Port: rds-port-${self:provider.stage}
+    # End of Env attributtes helper
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+    URL: ${self:custom.apiGwUrl}
+    DATABASE_TYPE: ${file(./env/env.${self:provider.stage}.json):DATABASE_TYPE}
+    DATABASE_HOST: ${self:custom.rdsEndpoint}
+    DATABASE_PORT: ${self:custom.rdsPort}
+    DATABASE_NAME: ${self:custom.databaseName}
+    DATABASE_USERNAME: ${file(./env/env.${self:provider.stage}.json):DATABASE_USERNAME}
+    DATABASE_PASSWORD: ${file(./env/env.${self:provider.stage}.json):DATABASE_PASSWORD}
+    DATABASE_SYNCHRONIZE: ${file(./env/env.${self:provider.stage}.json):DATABASE_SYNCHRONIZE}
+    DATABASE_LOGGING: ${file(./env/env.${self:provider.stage}.json):DATABASE_LOGGING}
+
+functions:
+  insertUser:
+    handler: src/api/handlers/UserHandlers/InsertUserHandler.handler
+    events:
+      - http:
+          method: get
+          path: user
+          cors: true
+          # authorizer:
+          #   type: COGNITO_USER_POOLS
+          #   authorizerId: ${self:custom.apiGwAuthorizer}
