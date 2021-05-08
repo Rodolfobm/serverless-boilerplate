@@ -20,7 +20,7 @@
     "serverless": "^1.54.0",
     "serverless-deployment-bucket": "^1.1.0",
     "source-map-support": "^0.5.10",
-    "typeorm": "^0.2.19"
+    "typeorm": "^0.2.25"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.17",
