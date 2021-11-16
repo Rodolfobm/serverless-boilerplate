@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@types/supertest": "^2.0.8",
-    "aws-sdk": "^2.546.0",
+    "aws-sdk": "^2.814.0",
     "npm-which": "^3.0.1",
     "pg": "^7.12.1",
     "reflect-metadata": "^0.1.13",
