@@ -17,7 +17,7 @@
     "npm-which": "^3.0.1",
     "pg": "^7.12.1",
     "reflect-metadata": "^0.1.13",
-    "serverless": "^1.54.0",
+    "serverless": "^3.25.1",
     "serverless-deployment-bucket": "^1.1.0",
     "source-map-support": "^0.5.10",
     "typeorm": "^0.2.19"
