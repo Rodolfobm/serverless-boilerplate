@@ -35,9 +35,9 @@
     "serverless-webpack": "^5.2.0",
     "supertest": "^4.0.2",
     "ts-jest": "^24.1.0",
-    "ts-loader": "^5.3.3",
+    "ts-loader": "^9.4.2",
     "typescript": "^3.2.4",
-    "webpack": "^4.41.1"
+    "webpack": "^5.75.0"
   },
   "jest": {
     "verbose": true,
